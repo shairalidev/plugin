@@ -1,1 +1,0 @@
-(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[166],{4513:function(n,_,u){(window.__NEXT_P=window.__NEXT_P||[]).push(["/[[...permalink]]",function(){return u(2364)}])}},function(n){n.O(0,[802,427,364,888,774,179],function(){return n(n.s=4513)}),_N_E=n.O()}]);
