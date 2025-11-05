@@ -1,129 +1,145 @@
-# Cinemepic-style HTML5 player
+# Cinemepic hero video player
 
-This repository contains an embeddable HTML5 video player inspired by the Cinemepic layout. It provides a cinematic theme with a video area on the left and a configurable playlist menu on the right. You can drop the player into any page with a single script and stylesheet include and control it entirely via JavaScript.
+This repository packages a drop-in HTML5 video experience that mirrors the hero player used on [cinemepic.com](https://cinemepic.com/en). The layout recreates the dark radial lighting, floating triangular play button, right-edge navigation arrow, and numbered scene menu showcased on Cinemepic campaigns. You can embed the player on any site with a single script and stylesheet include and fully configure the playlist from JavaScript.
 
-## Features
+## Highlights
 
-- HTML5 video playback with optional iframe embeds.
-- Customizable playlist with thumbnails, durations, and descriptions.
-- Cinematic styling with dark and light themes plus CSS custom properties.
-- Responsive layout that collapses the playlist below the video on smaller screens.
-- Built-in previous/next controls and programmatic playlist management.
-- Supports multiple player instances on the same page.
+- Cinemepic-accurate overlay with headline, description, triangular play trigger, and floating mute/next controls.
+- Horizontal scene navigator that uses Cinemepic's numbered tabs (`01 Kickstart`, `02 Strategy`, …) and updates automatically from your playlist.
+- Accent-aware gradients that adapt to each scene, mirroring the shifting glow from the live site.
+- Works with standard HTML5 sources or iframe embeds (e.g., Vimeo, YouTube).
+- Multiple players can coexist on the same page with independent playlists and theming.
 
-## Getting started
+## Quick start
 
-1. Copy the bundled CSS and JS files from the `src/` directory into your project (or install the package and import them).
-2. Add the markup below where you want the player to appear:
+1. Copy `src/cinemepic-player.css` and `src/cinemepic-player.js` into your project (or serve them directly).
+2. Add the container markup and instantiate the player:
 
    ```html
    <link rel="stylesheet" href="/path/to/cinemepic-player.css" />
-   <div id="my-player"></div>
+   <div id="cinemepic-player"></div>
    <script src="/path/to/cinemepic-player.js"></script>
    <script>
-     const player = new CinemepicPlayer('#my-player', {
+     const player = new CinemepicPlayer('#cinemepic-player', {
        playlist: [
          {
-           title: 'Voyage Beyond the Stars',
-           description: 'A slow pan through a neon-lit metropolis floating above the clouds.',
-           duration: '02:15',
-           src: 'https://example.com/video.mp4',
-           poster: 'https://example.com/poster.jpg',
-           thumbnail: 'https://example.com/thumb.jpg'
+           title: 'Analysis',
+           tagline: 'In an analysis',
+           description:
+             'We take a close look at who your target group is and what goals you want to achieve.',
+           stepLabel: 'Kickstart',
+           src: 'https://cdn.example.com/video/analysis.mp4',
+           poster: 'https://images.example.com/analysis-cover.jpg',
+           accent: '#2c9dff',
          },
-         // Additional videos here...
+         {
+           title: 'Strategy',
+           tagline: '02',
+           description: 'We craft the plan of action and define the cinematic language.',
+           stepLabel: 'Strategy',
+           src: 'https://cdn.example.com/video/strategy.mp4',
+           accent: '#7a5cff',
+         },
+         // more scenes...
        ],
        autoplay: false,
-       playlistTitle: 'Featured Trailers',
+       muted: true,
        theme: {
-         primary: '#fcd34d',
-         background: '#04040a',
-         text: '#f5f5fa',
-         muted: '#9090a0'
-       }
+         background: '#05060f',
+         text: '#ffffff',
+         accent: '#2f92ff',
+       },
      });
    </script>
    ```
 
-3. (Optional) Review the `demo/index.html` file for a complete working example with multiple player configurations.
+3. Open your page in the browser. The player renders the Cinemepic layout around the supplied playlist.
+
+See `demo/index.html` for an end-to-end example with multiple scenes, custom accents, and embed usage.
 
 ## Configuration
 
-Pass any of the options below when instantiating `CinemepicPlayer`:
+### Player options
+
+Pass options when creating a `CinemepicPlayer` instance:
 
 | Option | Type | Description |
 | --- | --- | --- |
-| `playlist` | `Array<PlaylistItem>` | Collection of videos to display. Each item can include `title`, `description`, `duration`, `src`, `sources`, `poster`, `thumbnail`, `tracks`, `embed`, `autoplay`, `loop`, and `muted`. |
-| `playlistTitle` | `string` | Heading displayed above the menu. |
-| `autoplay` | `boolean` | Whether to play the first item immediately after load. |
-| `muted` | `boolean` | Default mute state for videos. |
-| `loop` | `boolean` | Loop the active video when it ends. |
-| `controls` | `boolean` | Show native browser controls on the `<video>` element. |
-| `preload` | `string` | Value passed to the video `preload` attribute (`auto`, `metadata`, or `none`). |
-| `layout` | `"default"` \| `"minimal"` | Toggle a denser playlist menu without descriptions. |
-| `floating` | `boolean` | Adds a floating shadow effect to the player. |
-| `theme` | `object` | Override CSS variables (`primary`, `background`, `videoBackground`, `text`, `muted`, `menuWidth`, `borderRadius`) or apply presets like `{ preset: 'light' }`. |
-| `videoAttributes` | `object` | Additional attributes for the `<video>` element (e.g. `{ playsinline: true }`). |
-| `startAt` | `number` | Index of the first video to load. |
-| `onVideoChange` | `function` | Callback invoked with `{ item, index }` whenever a new video loads. |
+| `playlist` | `Array<PlaylistItem>` | Collection of scenes displayed in the numbered navigator. |
+| `autoplay` | `boolean` | Starts playback immediately when the first video loads (subject to browser policy). |
+| `muted` | `boolean` | Initial mute state for HTML5 videos. |
+| `loop` | `boolean` | Loops the active video when it reaches the end. |
+| `preload` | `"auto" \| "metadata" \| "none"` | Preload strategy for the `<video>` element. |
+| `controls` | `boolean` | Expose native browser controls (defaults to Cinemepic-style custom controls only). |
+| `videoAttributes` | `object` | Extra attributes for the `<video>` element (e.g., `{ playsinline: true }`). |
+| `startAt` | `number` | Index of the first playlist item to load. |
+| `nextLabel` | `string` | Caption shown near the right arrow (defaults to `Next`). |
+| `theme` | `object` | Override CSS custom properties such as `{ accent, background, text, mutedText, overlay, shadow }`. |
+| `onVideoChange` | `function` | Callback invoked with `{ item, index }` whenever a new scene loads. |
 
 ### Playlist items
 
-Each `PlaylistItem` can be either a regular HTML5 video source or an embedded iframe.
+Each playlist entry accepts the following keys:
 
 ```js
 {
-  title: 'Sample video',
-  description: 'Optional text beneath the title',
-  duration: '03:32',
+  title: 'Analysis',               // Main headline shown on the left
+  tagline: 'In an analysis',       // Optional uppercase kicker line above the title
+  description: 'Copy beside the video describing the scene.',
+  stepLabel: 'Kickstart',          // Label for the numbered step (defaults to title)
+  nextLabel: 'Next case',          // Optional label near the arrow for this scene
+  accent: '#2f92ff',               // Per-scene accent color (updates gradients & triangle)
   src: 'https://example.com/video.mp4',
-  sources: [
+  sources: [                       // Optional multi-source definition
     { src: 'https://example.com/video-1080p.mp4', type: 'video/mp4' },
-    { src: 'https://example.com/video.webm', type: 'video/webm' }
   ],
   poster: 'https://example.com/poster.jpg',
-  thumbnail: 'https://example.com/thumb.jpg',
-  tracks: [
+  tracks: [                        // Optional captions / subtitles
     { src: 'https://example.com/en.vtt', label: 'English', srclang: 'en', default: true }
   ],
-  autoplay: false,
-  loop: false,
-  muted: false
+  autoplay: false,                 // Override autoplay per scene
+  loop: false,                     // Override loop per scene
+  muted: false,                    // Override muted per scene
+  controls: false                  // Override native controls per scene
 }
 ```
 
-To embed external players, use the `embed` key:
+To embed a third-party player, supply an `embed` object instead of `src`/`sources`:
 
 ```js
 {
-  title: 'YouTube trailer',
+  title: 'Behind the scenes',
+  description: 'Watch the shoot from a drone perspective.',
+  stepLabel: 'Production',
+  accent: '#ff7a59',
   embed: {
-    src: 'https://www.youtube.com/embed/XXXXXXXX',
-    title: 'YouTube player',
-    allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
-  },
-  thumbnail: 'https://example.com/thumb.jpg'
+    src: 'https://player.vimeo.com/video/123456789',
+    title: 'Vimeo player',
+    allow: 'autoplay; fullscreen; picture-in-picture'
+  }
 }
 ```
 
-### API methods
+When an embedded scene is active the Cinemepic UI hides the triangle play toggle and mute button, mirroring the behaviour on the reference site.
+
+## API methods
 
 ```js
-const player = new CinemepicPlayer('#player', { playlist: [] });
-player.load(2);        // Load a specific index
-player.next();         // Advance to the next item
-player.previous();     // Go back to the previous item
-player.add(item);      // Push a new item to the playlist
-player.replacePlaylist(newItems); // Replace the entire playlist
-player.destroy();      // Tear down the instance
+const player = new CinemepicPlayer('#hero', { playlist: [] });
+player.load(2);          // Jump to a specific index
+player.next();           // Advance to the next scene
+player.previous();       // Go back
+player.add(item);        // Append a new scene
+player.replacePlaylist(items); // Replace the entire playlist
+player.destroy();        // Tear down the instance
 ```
 
-## Development
+## Local demo
 
-Open the demo file directly in your browser to explore the player locally:
+Serve the `demo/` directory with your favourite static server to explore the Cinemepic experience locally:
 
 ```bash
 npx serve demo
 ```
 
-No build step is required; the CSS and JS files ship ready for distribution.
+No build process is required—the CSS and JavaScript ship ready for production.

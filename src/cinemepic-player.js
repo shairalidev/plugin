@@ -5,18 +5,28 @@
     global.CinemepicPlayer = factory();
   }
 })(typeof window !== 'undefined' ? window : this, function () {
+  const ICONS = {
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.514a1 1 0 0 1 1.53-.848l7.5 5.486a1 1 0 0 1 0 1.696l-7.5 5.486A1 1 0 0 1 9 17.486V5.514Z"/></svg>',
+    pause:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.75 5a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-1.5 0V5.75A.75.75 0 0 1 8.75 5Zm6.5 0a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-1.5 0V5.75a.75.75 0 0 1 .75-.75Z"/></svg>',
+    volume:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.25 4.27a1 1 0 0 1 1.5.86v13.74a1 1 0 0 1-1.5.86l-5.2-3.17H5.5a1.5 1.5 0 0 1-1.5-1.5V9.94a1.5 1.5 0 0 1 1.5-1.5h2.55l5.2-4.17Z"/><path d="M17.86 8.07a1 1 0 0 1 1.38.28 7 7 0 0 1 0 7.3 1 1 0 1 1-1.66-1.1 5 5 0 0 0 0-5.1 1 1 0 0 1 .28-1.38Z"/><path d="M15.93 9.69a1 1 0 1 1 1.7-1 5.5 5.5 0 0 1 0 6.62 1 1 0 1 1-1.7-1 3.5 3.5 0 0 0 0-4.62Z"/></svg>',
+    muted:
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 4.27a1 1 0 0 1 1.5.86V11l3.14-3.15a1 1 0 1 1 1.42 1.42L16.41 12l3.15 3.15a1 1 0 0 1-1.42 1.42L15 13.41v6.46a1 1 0 0 1-1.5.86l-5.2-3.17H5.5a1.5 1.5 0 0 1-1.5-1.5V9.94a1.5 1.5 0 0 1 1.5-1.5h2.8l5.2-4.17Z"/></svg>',
+    next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 5.46a1 1 0 0 1 1.5-.86l7.5 5.2a2 2 0 0 1 0 3.4l-7.5 5.2a1 1 0 0 1-1.5-.86V5.46Z"/></svg>',
+  };
+
   const DEFAULT_OPTIONS = {
     playlist: [],
-    playlistTitle: 'Now Playing',
     autoplay: false,
     muted: false,
     loop: false,
-    controls: true,
     preload: 'metadata',
-    layout: 'default',
-    floating: false,
+    controls: false,
     theme: {},
     videoAttributes: {},
+    startAt: 0,
+    nextLabel: 'Next',
     onVideoChange: null,
   };
 
@@ -33,6 +43,7 @@
       this.autoplayQueued = false;
 
       this._render();
+
       if (this.playlist.length > 0) {
         const startingIndex = clampIndex(this.options.startAt || 0, this.playlist.length);
         this.load(startingIndex, { autoplay: this.options.autoplay });
@@ -44,15 +55,6 @@
     _render() {
       this.container = document.createElement('div');
       this.container.className = 'cinemepic-player';
-      if (this.options.layout === 'minimal') {
-        this.container.classList.add('cinemepic-player--minimal');
-      }
-      if (this.options.floating) {
-        this.container.classList.add('cinemepic-player--floating');
-      }
-      if (this.options.theme && this.options.theme.preset) {
-        this.container.dataset.theme = this.options.theme.preset;
-      }
 
       this._applyTheme(this.options.theme);
 
@@ -61,10 +63,13 @@
 
       this.videoElement = document.createElement('video');
       this.videoElement.className = 'cinemepic-player__video';
-      this.videoElement.controls = this.options.controls;
       this.videoElement.preload = this.options.preload;
-      this.videoElement.muted = this.options.muted;
       this.videoElement.loop = this.options.loop;
+      this.videoElement.muted = this.options.muted;
+      this.videoElement.playsInline = true;
+      this.videoElement.setAttribute('playsinline', '');
+      this.videoElement.setAttribute('webkit-playsinline', '');
+      this.videoElement.controls = Boolean(this.options.controls);
 
       Object.entries(this.options.videoAttributes || {}).forEach(([key, value]) => {
         if (value === false || value === null || value === undefined) return;
@@ -75,32 +80,64 @@
         }
       });
 
-      this.videoOverlay = document.createElement('div');
-      this.videoOverlay.className = 'cinemepic-player__video-overlay';
-
-      this.videoControls = this._createControls();
-
       this.videoWrapper.appendChild(this.videoElement);
-      this.videoWrapper.appendChild(this.videoOverlay);
-      this.videoWrapper.appendChild(this.videoControls);
-
-      this.playlistElement = document.createElement('aside');
-      this.playlistElement.className = 'cinemepic-player__playlist';
-
-      this.playlistHeader = document.createElement('header');
-      this.playlistHeader.className = 'cinemepic-player__playlist-header';
-      this.playlistTitle = document.createElement('h2');
-      this.playlistTitle.textContent = this.options.playlistTitle;
-      this.playlistHeader.appendChild(this.playlistTitle);
-
-      this.playlistItems = document.createElement('ul');
-      this.playlistItems.className = 'cinemepic-player__playlist-items';
-
-      this.playlistElement.appendChild(this.playlistHeader);
-      this.playlistElement.appendChild(this.playlistItems);
-
       this.container.appendChild(this.videoWrapper);
-      this.container.appendChild(this.playlistElement);
+
+      this.overlay = document.createElement('div');
+      this.overlay.className = 'cinemepic-player__overlay';
+
+      this.infoBlock = document.createElement('div');
+      this.infoBlock.className = 'cinemepic-player__info';
+
+      this.taglineEl = document.createElement('p');
+      this.taglineEl.className = 'cinemepic-player__tagline';
+
+      this.titleEl = document.createElement('h2');
+      this.titleEl.className = 'cinemepic-player__title';
+
+      this.descriptionEl = document.createElement('p');
+      this.descriptionEl.className = 'cinemepic-player__description';
+
+      this.infoBlock.appendChild(this.taglineEl);
+      this.infoBlock.appendChild(this.titleEl);
+      this.infoBlock.appendChild(this.descriptionEl);
+
+      this.stepper = document.createElement('div');
+      this.stepper.className = 'cinemepic-player__stepper';
+
+      this.overlay.appendChild(this.infoBlock);
+      this.overlay.appendChild(this.stepper);
+      this.container.appendChild(this.overlay);
+
+      this.playButton = document.createElement('button');
+      this.playButton.className = 'cinemepic-player__play';
+      this.playButton.type = 'button';
+      this.playButton.setAttribute('aria-label', 'Play video');
+      this.playIcon = document.createElement('span');
+      this.playIcon.className = 'cinemepic-player__play-icon';
+      this.playIcon.innerHTML = ICONS.play;
+      this.playButton.appendChild(this.playIcon);
+
+      this.muteButton = document.createElement('button');
+      this.muteButton.className = 'cinemepic-player__mute';
+      this.muteButton.type = 'button';
+      this.muteButton.setAttribute('aria-label', 'Mute');
+      this.muteButton.innerHTML = ICONS.volume;
+
+      this.nextButton = document.createElement('button');
+      this.nextButton.className = 'cinemepic-player__advance';
+      this.nextButton.type = 'button';
+      this.nextButton.setAttribute('aria-label', 'Next video');
+      this.nextButton.innerHTML = ICONS.next;
+
+      this.nextLabel = document.createElement('span');
+      this.nextLabel.className = 'cinemepic-player__next-label';
+      this.nextLabel.textContent = this.options.nextLabel || 'Next';
+
+      this.container.appendChild(this.playButton);
+      this.container.appendChild(this.muteButton);
+      this.container.appendChild(this.nextButton);
+      this.container.appendChild(this.nextLabel);
 
       this.root.innerHTML = '';
       this.root.appendChild(this.container);
@@ -109,38 +146,12 @@
       this._bindEvents();
     }
 
-    _createControls() {
-      const controls = document.createElement('div');
-      controls.className = 'cinemepic-player__video-controls';
-
-      this.prevButton = this._createControlButton('Previous', `
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5a1 1 0 0 1 2 0v5.382l7.447-4.47A1 1 0 0 1 17 6.764v10.472a1 1 0 0 1-1.553.852L8 13.618V19a1 1 0 1 1-2 0V5Z" /></svg>
-      `);
-      this.playPauseButton = this._createControlButton('Play/Pause', `
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5a1 1 0 0 1 1 1v12a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1Zm6 0a1 1 0 0 1 1 1v12a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1Z" /></svg>
-      `);
-      this.nextButton = this._createControlButton('Next', `
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5a1 1 0 1 1 2 0v14a1 1 0 1 1-2 0v-5.382l-7.447 4.47A1 1 0 0 1 9 17.236V6.764a1 1 0 0 1 1.553-.852L18 10.382V5Z" /></svg>
-      `);
-
-      controls.appendChild(this.prevButton);
-      controls.appendChild(this.playPauseButton);
-      controls.appendChild(this.nextButton);
-
-      return controls;
-    }
-
-    _createControlButton(label, icon) {
-      const button = document.createElement('button');
-      button.className = 'cinemepic-player__control-button';
-      button.type = 'button';
-      button.innerHTML = icon;
-      button.setAttribute('aria-label', label);
-      return button;
-    }
-
     _bindEvents() {
-      this.playPauseButton.addEventListener('click', () => {
+      this.playButton.addEventListener('click', () => {
+        if (this.container.classList.contains('cinemepic-player--has-embed')) {
+          return;
+        }
+
         if (this.videoElement.paused) {
           this.videoElement.play();
         } else {
@@ -148,92 +159,87 @@
         }
       });
 
-      this.prevButton.addEventListener('click', () => this.previous());
-      this.nextButton.addEventListener('click', () => this.next());
-
       this.videoElement.addEventListener('play', () => this._syncPlayState());
       this.videoElement.addEventListener('pause', () => this._syncPlayState());
-
       this.videoElement.addEventListener('ended', () => {
         if (this.options.loop) return;
         this.next({ autoplay: true, wrap: false });
       });
-    }
 
-    _syncPlayState() {
-      if (this.videoElement.paused) {
-        this.playPauseButton.innerHTML = `
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5a1 1 0 0 1 1.52-.854l9 6a1 1 0 0 1 0 1.708l-9 6A1 1 0 0 1 8 17.5v-12Z" /></svg>
-        `;
-      } else {
-        this.playPauseButton.innerHTML = `
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5a1 1 0 0 1 1 1v12a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1Zm6 0a1 1 0 0 1 1 1v12a1 1 0 1 1-2 0V6a1 1 0 0 1 1-1Z" /></svg>
-        `;
-      }
-    }
-
-    _applyTheme(theme = {}) {
-      if (!theme) return;
-      const themeMap = {
-        primary: '--cp-primary',
-        background: '--cp-background',
-        videoBackground: '--cp-video-background',
-        text: '--cp-text',
-        muted: '--cp-muted',
-        menuWidth: '--cp-menu-width',
-        borderRadius: '--cp-border-radius',
-      };
-
-      Object.entries(theme).forEach(([key, value]) => {
-        const cssVar = themeMap[key];
-        if (cssVar && value) {
-          this.container?.style.setProperty(cssVar, value);
+      this.videoElement.addEventListener('click', () => {
+        if (this.container.classList.contains('cinemepic-player--has-embed')) {
+          return;
         }
+        if (this.videoElement.paused) {
+          this.videoElement.play();
+        } else {
+          this.videoElement.pause();
+        }
+      });
+
+      this.nextButton.addEventListener('click', () => this.next({ autoplay: true }));
+
+      this.muteButton.addEventListener('click', () => {
+        this.videoElement.muted = !this.videoElement.muted;
+        this.options.muted = this.videoElement.muted;
+        this._syncMuteState();
       });
     }
 
     _refreshPlaylist() {
-      this.playlistItems.innerHTML = '';
-      if (!this.playlist.length) return;
+      this.stepper.innerHTML = '';
+      if (!this.playlist.length) {
+        return;
+      }
 
       this.playlist.forEach((item, index) => {
-        const listItem = document.createElement('li');
-        listItem.className = 'cinemepic-player__playlist-item';
-        listItem.tabIndex = 0;
-        listItem.dataset.index = String(index);
-        listItem.innerHTML = this._playlistItemTemplate(item);
-        listItem.addEventListener('click', () => this.load(index, { autoplay: true }));
-        listItem.addEventListener('keydown', (event) => {
+        const stepButton = document.createElement('button');
+        stepButton.type = 'button';
+        stepButton.className = 'cinemepic-player__step';
+        stepButton.dataset.index = String(index);
+
+        const number = document.createElement('span');
+        number.className = 'cinemepic-player__step-number';
+        number.textContent = formatStepNumber(index + 1);
+
+        const label = document.createElement('span');
+        label.className = 'cinemepic-player__step-label';
+        label.textContent = item.stepLabel || item.menuLabel || item.shortTitle || item.title || `Video ${index + 1}`;
+
+        stepButton.appendChild(number);
+        stepButton.appendChild(label);
+
+        stepButton.addEventListener('click', () => this.load(index, { autoplay: true }));
+        stepButton.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             this.load(index, { autoplay: true });
           }
         });
-        this.playlistItems.appendChild(listItem);
+
+        this.stepper.appendChild(stepButton);
       });
     }
 
     _renderEmptyState() {
-      const empty = document.createElement('div');
+      this.taglineEl.textContent = '';
+      this.titleEl.textContent = 'Awaiting footage';
+      this.descriptionEl.textContent = 'Add playlist entries to mirror the Cinemepic sequence.';
+      this.stepper.innerHTML = '';
+      const empty = document.createElement('p');
       empty.className = 'cinemepic-player__empty';
-      empty.textContent = 'Add videos to your playlist to start using the player.';
-      this.playlistItems.appendChild(empty);
-    }
+      empty.textContent = 'No scenes loaded';
+      this.stepper.appendChild(empty);
 
-    _playlistItemTemplate(item) {
-      const thumb = item.thumbnail || item.poster || '';
-      const description = item.description || '';
-      const duration = item.duration || '';
-      return `
-        <div class="cinemepic-player__thumb">
-          ${thumb ? `<img src="${thumb}" alt="${escapeHtml(item.title || 'Video thumbnail')}">` : ''}
-        </div>
-        <div class="cinemepic-player__meta">
-          <p class="cinemepic-player__title">${escapeHtml(item.title || 'Untitled video')}</p>
-          ${duration ? `<p class="cinemepic-player__duration">${escapeHtml(duration)}</p>` : ''}
-          ${description ? `<p class="cinemepic-player__description">${escapeHtml(description)}</p>` : ''}
-        </div>
-      `;
+      this.playButton.disabled = true;
+      this.playButton.setAttribute('aria-hidden', 'true');
+      this.playButton.setAttribute('tabindex', '-1');
+      this.muteButton.disabled = true;
+      this.muteButton.setAttribute('aria-hidden', 'true');
+      this.muteButton.setAttribute('tabindex', '-1');
+      this.nextButton.disabled = true;
+      this.nextButton.style.visibility = 'hidden';
+      this.nextLabel.style.visibility = 'hidden';
     }
 
     load(index, { autoplay = false } = {}) {
@@ -243,7 +249,7 @@
       if (!item) return;
 
       this.currentIndex = targetIndex;
-      this._updatePlaylistState();
+      this.container.classList.remove('cinemepic-player--has-embed');
 
       const isEmbed = Boolean(item.embed);
 
@@ -252,6 +258,9 @@
       } else {
         this._loadVideo(item);
       }
+
+      this._updateOverlay(item);
+      this._updatePlaylistState();
 
       if (!isEmbed) {
         const shouldAutoplay = autoplay || item.autoplay || this.autoplayQueued;
@@ -262,9 +271,24 @@
               this.autoplayQueued = true;
             });
           }
+        } else {
+          this.videoElement.pause();
         }
         this.autoplayQueued = false;
       }
+
+      this.playButton.disabled = false;
+      this.playButton.removeAttribute('tabindex');
+      this.playButton.setAttribute('aria-hidden', 'false');
+      this.muteButton.disabled = false;
+      this.nextButton.disabled = this.playlist.length <= 1;
+      this.nextButton.style.visibility = this.playlist.length <= 1 ? 'hidden' : '';
+      this.nextLabel.style.visibility = this.playlist.length <= 1 ? 'hidden' : '';
+
+      this.container.classList.toggle('cinemepic-player--has-embed', isEmbed);
+
+      this._syncPlayState();
+      this._syncMuteState();
 
       if (typeof this.options.onVideoChange === 'function') {
         this.options.onVideoChange({ item, index: this.currentIndex });
@@ -272,7 +296,6 @@
     }
 
     _loadVideo(item) {
-      this.videoWrapper.classList.remove('cinemepic-player__video-wrapper--embed');
       this.videoElement.style.display = '';
       if (this.embedElement) {
         this.embedElement.remove();
@@ -304,7 +327,7 @@
         this.videoElement.src = item.src;
       }
 
-      if (item.tracks && Array.isArray(item.tracks)) {
+      if (Array.isArray(item.tracks)) {
         item.tracks.forEach((track) => {
           const trackEl = document.createElement('track');
           trackEl.kind = track.kind || 'subtitles';
@@ -317,6 +340,9 @@
           this.videoElement.appendChild(trackEl);
         });
       }
+
+      const controls = item.controls !== undefined ? item.controls : this.options.controls;
+      this.videoElement.controls = Boolean(controls);
 
       if (item.muted !== undefined) {
         this.videoElement.muted = item.muted;
@@ -331,11 +357,9 @@
       }
 
       this.videoElement.load();
-      this._syncPlayState();
     }
 
     _loadEmbed(item) {
-      this.videoWrapper.classList.add('cinemepic-player__video-wrapper--embed');
       this.videoElement.pause();
       this.videoElement.removeAttribute('src');
       while (this.videoElement.firstChild) {
@@ -345,26 +369,45 @@
 
       if (!this.embedElement) {
         this.embedElement = document.createElement('iframe');
+        this.embedElement.className = 'cinemepic-player__embed';
         this.embedElement.allow = item.embed.allow || 'autoplay; fullscreen; picture-in-picture';
         this.embedElement.allowFullscreen = true;
         this.embedElement.referrerPolicy = 'strict-origin-when-cross-origin';
-        this.embedElement.className = 'cinemepic-player__embed';
-        this.videoWrapper.insertBefore(this.embedElement, this.videoOverlay);
+        this.videoWrapper.appendChild(this.embedElement);
       }
 
       this.embedElement.src = item.embed.src;
       if (item.embed.title) {
         this.embedElement.title = item.embed.title;
       }
+    }
 
-      this._syncPlayState();
+    _updateOverlay(item) {
+      this.taglineEl.textContent = item.tagline || item.category || item.kicker || '';
+      this.titleEl.textContent = item.title || 'Untitled scene';
+      this.descriptionEl.textContent = item.description || '';
+      this.descriptionEl.style.display = item.description ? '' : 'none';
+
+      const accent = item.accent || item.accentColor || this.options.theme.accent;
+      this._setAccent(accent);
+
+      const nextLabel = item.nextLabel || this.options.nextLabel;
+      if (nextLabel) {
+        this.nextLabel.textContent = nextLabel;
+      }
     }
 
     _updatePlaylistState() {
-      const items = this.playlistItems.querySelectorAll('.cinemepic-player__playlist-item');
-      items.forEach((item) => {
-        const index = Number(item.dataset.index);
-        item.classList.toggle('cinemepic-player__playlist-item--active', index === this.currentIndex);
+      const buttons = this.stepper.querySelectorAll('.cinemepic-player__step');
+      buttons.forEach((button) => {
+        const index = Number(button.dataset.index);
+        const isActive = index === this.currentIndex;
+        button.classList.toggle('cinemepic-player__step--active', isActive);
+        if (isActive) {
+          button.setAttribute('aria-current', 'true');
+        } else {
+          button.removeAttribute('aria-current');
+        }
       });
     }
 
@@ -408,12 +451,79 @@
     }
 
     destroy() {
-      this.root.innerHTML = '';
       this.videoElement?.pause();
+      this.root.innerHTML = '';
       this.container = null;
       this.videoElement = null;
-      this.playlistElement = null;
-      this.playlistItems = null;
+      this.stepper = null;
+    }
+
+    _syncPlayState() {
+      const playing = !this.videoElement.paused && !this.videoElement.ended;
+      this.container.classList.toggle('is-playing', playing);
+      this.playIcon.innerHTML = playing ? ICONS.pause : ICONS.play;
+      this.playButton.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
+
+      const isEmbed = this.container.classList.contains('cinemepic-player--has-embed');
+      if (isEmbed) {
+        this.playButton.disabled = true;
+        this.playButton.setAttribute('aria-hidden', 'true');
+        this.playButton.setAttribute('tabindex', '-1');
+      } else {
+        this.playButton.disabled = false;
+        this.playButton.setAttribute('aria-hidden', 'false');
+        this.playButton.removeAttribute('tabindex');
+      }
+    }
+
+    _syncMuteState() {
+      const muted = this.videoElement.muted;
+      this.muteButton.classList.toggle('is-muted', muted);
+      this.muteButton.innerHTML = muted ? ICONS.muted : ICONS.volume;
+      this.muteButton.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
+
+      const isEmbed = this.container.classList.contains('cinemepic-player--has-embed');
+      if (isEmbed) {
+        this.muteButton.disabled = true;
+        this.muteButton.setAttribute('aria-hidden', 'true');
+        this.muteButton.setAttribute('tabindex', '-1');
+      } else {
+        this.muteButton.disabled = false;
+        this.muteButton.setAttribute('aria-hidden', 'false');
+        this.muteButton.removeAttribute('tabindex');
+      }
+    }
+
+    _applyTheme(theme = {}) {
+      if (!theme) return;
+      const themeMap = {
+        accent: '--cp-accent',
+        background: '--cp-surface',
+        text: '--cp-text-strong',
+        mutedText: '--cp-text-muted',
+        overlay: '--cp-overlay',
+        shadow: '--cp-shadow',
+      };
+
+      Object.entries(theme).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        const cssVar = themeMap[key];
+        if (cssVar) {
+          this.container?.style.setProperty(cssVar, value);
+        }
+        if (key === 'accent') {
+          this._setAccent(value);
+        }
+      });
+    }
+
+    _setAccent(color) {
+      if (!color) return;
+      this.container.style.setProperty('--cp-accent', color);
+      const rgb = toRgbString(color);
+      if (rgb) {
+        this.container.style.setProperty('--cp-accent-rgb', rgb);
+      }
     }
   }
 
@@ -437,13 +547,37 @@
     return index;
   }
 
-  function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  function formatStepNumber(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function toRgbString(color) {
+    if (Array.isArray(color)) {
+      return color.join(' ');
+    }
+
+    if (typeof color === 'string') {
+      const hex = color.trim();
+      if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) {
+        const normalized = hex.length === 4
+          ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+          : hex;
+        const r = parseInt(normalized.slice(1, 3), 16);
+        const g = parseInt(normalized.slice(3, 5), 16);
+        const b = parseInt(normalized.slice(5, 7), 16);
+        return `${r} ${g} ${b}`;
+      }
+
+      const rgbMatch = color.match(/rgba?\(([^)]+)\)/i);
+      if (rgbMatch) {
+        return rgbMatch[1]
+          .split(',')
+          .slice(0, 3)
+          .map((segment) => segment.trim().replace(/%$/, ''))
+          .join(' ');
+      }
+    }
+    return null;
   }
 
   return CinemepicPlayer;
