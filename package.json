@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build:offline": "node scripts/build-offline-demo.js",
+    "serve:demo": "node scripts/serve-demo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
