@@ -14,6 +14,7 @@
   --cp-radius: 38px;
   --cp-padding: clamp(32px, 6vw, 88px);
   --cp-shadow: 0 32px 80px rgba(0, 0, 0, 0.45);
+  --cp-cursor-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'%3E%3Cpath fill='%23fff' d='M12.1 8.4c3.5-4.7 9.3-6.4 14.9-4.1l32.3 13.6c8.5 3.6 8.5 15.8 0 19.4L27 51c-5.6 2.3-11.4.6-14.9-4.1-4.3-5.6-4.3-17.3 0-23.9Z'/%3E%3C/svg%3E");
 }
 
 .cinemepic-player {
@@ -47,6 +48,84 @@
   overflow: hidden;
   z-index: 0;
   background: #02040a;
+}
+
+.cinemepic-player__cursor-cue {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: clamp(54px, 6vw, 74px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(0.82);
+  background: linear-gradient(
+    140deg,
+    rgba(var(--cp-accent-rgb), 0.22) 0%,
+    rgba(var(--cp-accent-rgb), 0.88) 48%,
+    rgba(var(--cp-accent-rgb), 1) 100%
+  );
+  mask: var(--cp-cursor-mask);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask: var(--cp-cursor-mask);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.28s ease;
+  overflow: visible;
+  z-index: 4;
+}
+
+.cinemepic-player__cursor-cue::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  background: radial-gradient(circle, rgba(var(--cp-accent-rgb), 0.78) 0%, rgba(var(--cp-accent-rgb), 0) 72%);
+  filter: blur(18px);
+  opacity: 0.92;
+  z-index: -1;
+}
+
+.cinemepic-player__cursor-cue::after {
+  content: "";
+  position: absolute;
+  inset: 20%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+  mask: var(--cp-cursor-mask);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask: var(--cp-cursor-mask);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  opacity: 0.9;
+}
+
+.cinemepic-player__cursor-cue.is-active {
+  pointer-events: none;
+}
+
+.cinemepic-player__cursor-cue.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.cinemepic-player__cursor-cue[data-state='playing'] {
+  background: linear-gradient(
+    140deg,
+    rgba(var(--cp-accent-rgb), 0.32) 0%,
+    rgba(var(--cp-accent-rgb), 0.92) 48%,
+    rgba(var(--cp-accent-rgb), 1) 100%
+  );
+}
+
+.cinemepic-player__cursor-cue[data-state='playing']::after {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.05));
 }
 
 .cinemepic-player__video-wrapper video,

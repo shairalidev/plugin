@@ -5,6 +5,7 @@ This repository packages a drop-in HTML5 video experience that mirrors the hero 
 ## Highlights
 
 - Cinemepic-accurate overlay with headline, description, triangular play trigger, and floating mute/next controls.
+- Floating Cinemepic-style play cue that follows the cursor when playback is paused.
 - Horizontal scene navigator that uses Cinemepic's numbered tabs (`01 Kickstart`, `02 Strategy`, …) and updates automatically from your playlist.
 - Accent-aware gradients that adapt to each scene, mirroring the shifting glow from the live site.
 - Works with standard HTML5 sources or iframe embeds (e.g., Vimeo, YouTube).

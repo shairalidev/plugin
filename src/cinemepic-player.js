@@ -41,6 +41,10 @@
       this.playlist = Array.isArray(this.options.playlist) ? this.options.playlist.slice() : [];
       this.currentIndex = -1;
       this.autoplayQueued = false;
+      this.cursorCue = null;
+      this.cursorCuePosition = { x: 0.5, y: 0.5 };
+      this.cursorCueHovering = false;
+      this.lastPointerType = null;
 
       this._render();
 
@@ -81,6 +85,13 @@
       });
 
       this.videoWrapper.appendChild(this.videoElement);
+
+      this.cursorCue = document.createElement('div');
+      this.cursorCue.className = 'cinemepic-player__cursor-cue';
+      this.cursorCue.dataset.state = 'paused';
+      this.videoWrapper.appendChild(this.cursorCue);
+      this._applyCursorCuePosition();
+
       this.container.appendChild(this.videoWrapper);
 
       this.overlay = document.createElement('div');
@@ -175,6 +186,32 @@
         } else {
           this.videoElement.pause();
         }
+      });
+
+      const pointerTrackHandler = (event) => {
+        this._recordCursorCuePosition(event);
+        if (!this._cursorCueCanDisplay(event)) return;
+        this._revealCursorCue();
+      };
+
+      this.videoWrapper.addEventListener('pointermove', pointerTrackHandler);
+      this.videoWrapper.addEventListener('pointerdown', pointerTrackHandler);
+      this.videoWrapper.addEventListener('pointerenter', (event) => {
+        if (event?.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') {
+          this.cursorCueHovering = false;
+          this.cursorCue?.classList.remove('is-visible');
+          return;
+        }
+        this.cursorCueHovering = true;
+        this._recordCursorCuePosition(event);
+        if (this._cursorCueCanDisplay(event)) {
+          this._revealCursorCue();
+        }
+      });
+      this.videoWrapper.addEventListener('pointerleave', () => {
+        this.cursorCueHovering = false;
+        if (!this.cursorCue) return;
+        this.cursorCue.classList.remove('is-visible');
       });
 
       this.nextButton.addEventListener('click', () => this.next({ autoplay: true }));
@@ -366,6 +403,7 @@
         this.videoElement.removeChild(this.videoElement.firstChild);
       }
       this.videoElement.style.display = 'none';
+      this._deactivateCursorCue();
 
       if (!this.embedElement) {
         this.embedElement = document.createElement('iframe');
@@ -464,6 +502,8 @@
       this.playIcon.innerHTML = playing ? ICONS.pause : ICONS.play;
       this.playButton.setAttribute('aria-label', playing ? 'Pause video' : 'Play video');
 
+      this._syncCursorCue(playing);
+
       const isEmbed = this.container.classList.contains('cinemepic-player--has-embed');
       if (isEmbed) {
         this.playButton.disabled = true;
@@ -492,6 +532,100 @@
         this.muteButton.setAttribute('aria-hidden', 'false');
         this.muteButton.removeAttribute('tabindex');
       }
+    }
+
+    _syncCursorCue(playing) {
+      if (!this.cursorCue) return;
+
+      if (this.container.classList.contains('cinemepic-player--has-embed')) {
+        this._deactivateCursorCue();
+        return;
+      }
+
+      this.cursorCue.dataset.state = playing ? 'playing' : 'paused';
+
+      if (playing) {
+        this._deactivateCursorCue();
+      } else {
+        this._activateCursorCue();
+      }
+    }
+
+    _activateCursorCue() {
+      if (!this.cursorCue) return;
+      this.cursorCue.classList.add('is-active');
+      this.cursorCue.classList.remove('is-visible');
+      this._applyCursorCuePosition();
+      if (this.cursorCueHovering) {
+        this._revealCursorCue();
+      }
+    }
+
+    _deactivateCursorCue() {
+      if (!this.cursorCue) return;
+      this.cursorCue.classList.remove('is-active');
+      this.cursorCue.classList.remove('is-visible');
+    }
+
+    _cursorCueCanDisplay(event) {
+      if (!this.cursorCue || !this.cursorCue.classList.contains('is-active')) {
+        return false;
+      }
+
+      const pointerType = event?.pointerType || this.lastPointerType;
+      if (pointerType && pointerType !== 'mouse' && pointerType !== 'pen') {
+        return false;
+      }
+
+      if (this.container.classList.contains('cinemepic-player--has-embed')) {
+        return false;
+      }
+
+      return true;
+    }
+
+    _revealCursorCue() {
+      if (!this.cursorCue) return;
+      this.cursorCue.classList.add('is-visible');
+      this._applyCursorCuePosition();
+    }
+
+    _recordCursorCuePosition(event) {
+      if (!event || !this.videoWrapper) return;
+
+      const pointerType = event.pointerType || this.lastPointerType;
+      if (pointerType && pointerType !== 'mouse' && pointerType !== 'pen') {
+        this.lastPointerType = pointerType;
+        return;
+      }
+
+      this.lastPointerType = pointerType || 'mouse';
+
+      const rect = this.videoWrapper.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      if (typeof event.clientX !== 'number' || typeof event.clientY !== 'number') {
+        return;
+      }
+
+      const ratioX = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      const ratioY = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+      this.cursorCuePosition = { x: ratioX, y: ratioY };
+
+      if (this.cursorCue?.classList.contains('is-visible')) {
+        this._applyCursorCuePosition();
+      }
+    }
+
+    _applyCursorCuePosition() {
+      if (!this.cursorCue || !this.videoWrapper) return;
+      const rect = this.videoWrapper.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const ratio = this.cursorCuePosition || { x: 0.5, y: 0.5 };
+      const x = rect.width * ratio.x;
+      const y = rect.height * ratio.y;
+      this.cursorCue.style.left = `${x}px`;
+      this.cursorCue.style.top = `${y}px`;
     }
 
     _applyTheme(theme = {}) {
@@ -545,6 +679,12 @@
     if (index < 0) return 0;
     if (index >= length) return length - 1;
     return index;
+  }
+
+  function clamp(value, min, max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
   }
 
   function formatStepNumber(value) {
