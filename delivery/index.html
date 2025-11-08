@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cinemepic-style Video Section</title>
+  
+  <!-- External CSS -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Fonts + Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- ===== Cinemepic-style Video Hero Section ===== -->
+  <section id="cinemepic-hero" aria-label="Video showcase">
+    <div class="cp-container">
+
+      <!-- Video layer -->
+      <div class="cp-video-wrap" id="cpVideoWrap">
+        <!-- Active video -->
+        <video id="cpVideo" class="cp-video" autoplay muted playsinline>
+          <source id="cpVideoSrc" src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        </video>
+
+        <!-- Pause indicator -->
+        <div class="cp-pause-overlay" id="cpPauseIndicator"></div>
+        
+        <!-- Overlay with gradient only (no text) -->
+        <div class="cp-overlay"></div>
+      </div>
+
+      <!-- Top-left utilities -->
+      <div class="cp-util cp-util-left">
+        <!-- Return Icon -->
+        <button class="cp-icon-btn" id="cpReturnBtn" aria-label="Go back">
+          <svg viewBox="0 0 24 24">
+            <path d="M19.6 10.9H7l6.2-6.2c.4-.4.4-1.1 0-1.6s-1.1-.4-1.6 0l-8.1 8.1c-.4.4-.4 1.1 0 1.6l8.1 8.1c.2.2.5.4.8.4.3 0 .5-.1.8-.4.4-.4.4-1.1 0-1.6L7 13.1h12.7c.6 0 1.1-.5 1.1-1.1-.1-.5-.5-1.1-1.2-1.1z"/>
+          </svg>
+        </button>
+
+        <!-- Mute / Unmute Toggle -->
+        <button class="cp-icon-btn" id="cpMuteBtn" aria-label="Toggle sound">
+          <svg id="cpMuteIcon" viewBox="0 0 24 24">
+            <path d="M11.38,2.82c-.59-.29-1,0-1.47.37C8.47,4.35,7,5.49,5.59,6.66a1.6,1.6,0,0,1-1.16.4c-1,0-2,0-3.06,0S0,7.48,0,8.39c0,2,0,4,0,6.07,0,.95.42,1.35,1.39,1.36s2,0,3,0a1.75,1.75,0,0,1,1.2.42c1.51,1.23,3,2.44,4.56,3.65a1,1,0,0,0,1.18.18,1.17,1.17,0,0,0,.71-1c0-.17,0-.35,0-.52v-7c0-2.41,0-4.81,0-7.22A1.36,1.36,0,0,0,11.38,2.82Z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Bottom video progress -->
+      <input type="range" class="cp-progress" id="cpProgress" min="0" max="100" step="0.1" value="0" aria-label="Video progress"/>
+
+      <!-- Bottom Pull-up Slider -->
+      <div class="cp-slider" id="cpSlider">
+        <div class="cp-slider-trigger" id="cpSliderTrigger" aria-label="Open topics">
+          <i class="fa-solid fa-angle-up"></i>
+          <i class="fa-solid fa-angle-up"></i>
+        </div>
+
+        <div class="cp-slider-panel" id="cpSliderPanel" role="region" aria-label="Topics">
+          <div class="cp-slider-inner">
+            <h3 class="cp-slider-title" id="cpSliderTitle">Sichtbarkeit & Reichweite</h3>
+
+            <ul class="cp-topic-grid" id="cpTopics">
+              <li class="cp-topic active">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                        data-title="Sichtbarkeit & Reichweite">
+                  Sichtbarkeit &amp; <br>Reichweite
+                </button>
+              </li>
+
+              <li class="cp-topic">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+                        data-title="Anfragen generieren">
+                  Anfragen <br> generieren
+                </button>
+              </li>
+
+              <li class="cp-topic">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                        data-title="Bewerber anziehen">
+                  Bewerber <br> anziehen
+                </button>
+              </li>
+
+              <li class="cp-topic">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                        data-title="Verständnis fürs Angebot">
+                  Verständnis fürs <br> Angebot
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  
+  <!-- External JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
