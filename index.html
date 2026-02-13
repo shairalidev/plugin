@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cinemepic-style Video Section</title>
+  
+  <!-- Fonts + Icons -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+  <style>
+   :root{
+    --cp-bg:#060E14;
+    --cp-accent:#2DA4DA;
+    --cp-white:#FFFFFF;
+    --cp-muted:rgba(255,255,255,0.65);
+    --cp-shade:rgba(255,255,255,0.15);
+    --cp-blur:10px;
+    --cp-radius:1.25em;
+    --cp-speed:300ms;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--cp-white);
+    background:#000;
+  }
+
+  /* ===== Cinemepic-style Hero Section ===== */
+  #cinemepic-hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    padding:1em;
+    background:#000;
+  }
+
+  .cp-slider-trigger i {
+  font-size: 12px;
+  display: block;
+  line-height: 10px;
+}
+
+.cp-slider-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+  .cp-container {
+  width: 75%;              /* make horizontally smaller */
+  max-width: 1400px;       /* reduce max size */
+  aspect-ratio: 21/9;      
+  max-height: 80vh;        /* reduce vertical size */
+  margin: auto;
+  border-radius: var(--cp-radius);
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  background: #000;
+}
+
+  /* Hover Preview State */
+.cp-slider:hover .cp-slider-panel:not(.open) {
+  max-height: 65px; /* small preview */
+}
+
+/* Smooth easing for preview */
+.cp-slider-panel {
+  transition: max-height 1000ms cubic-bezier(.32, .72, .21, 1);
+}
+.cp-slider:hover .cp-slider-panel:not(.open) {
+  max-height: 75px;
+  transition: max-height 450ms cubic-bezier(.32, .72, .21, 1);
+}
+
+.cp-slider-panel.open {
+  transition: max-height 750ms cubic-bezier(.19, 1, .22, 1); /* smooth & luxurious */
+}
+
+.cp-slider-trigger:hover {
+  transform: translateY(-4px); /* subtle lift */
+  background: rgba(0,0,0,0.55);
+}
+.cp-slider-trigger:hover i {
+  opacity: 1;
+  transform: translateY(-1px);
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+  /* ==== Cinemepic-style Pause / Play Overlay ==== */
+/* Cinemepic Pause Overlay */
+.JhUzy {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  z-index: 4;
+  transition: opacity 260ms ease;
+}
+
+/* Show state (video paused) */
+.JhUzy.show {
+  opacity: 1;
+  animation: cpPausePulse 420ms ease forwards;
+}
+
+/* Play icon graphic */
+.JhUzy::before {
+  content: "";
+  height: 3em;
+  width: 4em;
+  background-image: url(https://static.clipflows.com/static/media/play-cf.aef7ef05.svg?v1);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(.8);
+  opacity: .8;
+  transition: transform 260ms ease, opacity 260ms ease;
+}
+
+/* Scale and smooth rising presence */
+@keyframes cpPausePulse {
+  0% {
+    transform: scale(.75);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1.12);
+    opacity: .9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* On hover, give a subtle refine action (still non-clickable) */
+.JhUzy.show:hover::before {
+  transform: translate(-50%, -50%) scale(1.04);
+  opacity: 1;
+}
+
+
+  /* Video layer */
+  .cp-video-wrap{
+    position:relative;
+    width:100%;
+    height:100%;
+    cursor:pointer;
+    overflow:hidden;
+  }
+  .cp-video{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#000;
+    opacity:1;
+    transition:opacity 400ms ease;
+  }
+  .cp-video.fade-out{opacity:0}
+
+  /* Pause indicator */
+  .cp-pause-indicator{
+    position:absolute;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:4;
+    pointer-events:none;
+    color:#fff;
+    font-size:4rem;
+    text-shadow:0 6px 24px rgba(0,0,0,.6);
+  }
+  .cp-pause-indicator.show{display:flex}
+
+  .cp-util-left {
+    left: 1.2em;
+    right: auto;
+    display: flex;
+    gap: .6em;
+  }
+
+  .cp-icon-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: #fff;
+    opacity: .9;
+    transition: opacity var(--cp-speed) ease;
+  }
+  .cp-icon-btn:hover svg {
+    opacity: 1;
+  }
+
+  /* Top-right utility buttons */
+  .cp-util{
+    position:absolute;
+    top:1.2em;
+    right:1.2em;
+    z-index:5;
+    display:flex;
+    gap:.6em;
+  }
+  .cp-icon-btn{
+    width:2.4em;
+    height:2.4em;
+    border:1px solid var(--cp-shade);
+    border-radius:.6em;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(var(--cp-blur));
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    opacity:.85;
+    transition:opacity var(--cp-speed) ease;
+  }
+  .cp-icon-btn:hover{opacity:1}
+
+  /* Overlay - Only gradient, no text */
+  .cp-overlay{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+  }
+  .cp-overlay::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,.85) 100%);
+  }
+
+  /* ===================== FIXED PROGRESS BAR ===================== */
+  /* Bottom video progress */
+  .cp-progress{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    height:4px;
+    background: rgba(255,255,255,0.18);
+    border:none;
+    outline:none;
+    cursor:pointer;
+    z-index: 1000;
+    appearance:none;
+  }
+
+  /* Track */
+  .cp-progress::-webkit-slider-runnable-track{
+    height:4px;
+    background:rgba(255,255,255,0.18);
+  }
+  .cp-progress::-moz-range-track{
+    height:4px;
+    background:rgba(255,255,255,0.18);
+  }
+
+  /* Dynamic fill */
+  .cp-progress{
+    background: linear-gradient(to right, var(--cp-accent) 0%, rgba(255,255,255,0.18) 0%);
+    transition: background 80ms linear;
+  }
+
+  /* Remove the round thumb completely */
+  .cp-progress::-webkit-slider-thumb{
+    appearance:none;
+    width:0;
+    height:0;
+    background:transparent;
+    border:none;
+    box-shadow:none;
+    margin:0;
+  }
+
+  .cp-progress::-moz-range-thumb{
+    width:0;
+    height:0;
+    background:transparent;
+    border:none;
+    box-shadow:none;
+  }
+
+  .cp-progress {
+    height:4px;
+    border-radius:2px;
+    background: linear-gradient(to right, var(--cp-accent) 0%, rgba(255,255,255,0.18) 0%);
+  }
+
+
+  /* Slider panel */
+  .cp-slider{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    z-index:6;
+    pointer-events:none;
+  }
+  .cp-slider-trigger{
+    width:62px;
+    height:30px;
+    border:1px solid transparent;
+    border-bottom:none;
+    border-radius:.6em .6em 0 0;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(var(--cp-blur));
+    cursor:pointer;
+    transition:background var(--cp-speed) ease, transform var(--cp-speed) ease;
+    pointer-events:auto;
+  }
+  .cp-slider-trigger:hover{background:rgba(0,0,0,.55)}
+  .cp-slider-trigger i{transition:transform var(--cp-speed) ease}
+  .cp-slider-trigger.active i{transform:rotate(180deg)}
+
+  .cp-slider-panel{
+    position:relative;
+    width:100%;
+    max-height:0;
+    overflow:hidden;
+    background:#000;
+    pointer-events:auto;
+    transition:max-height 450ms ease;
+    border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .cp-slider-panel.open{max-height:520px}
+  .cp-slider-inner{
+    padding:1.25em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1em;
+    overflow:auto;
+  }
+  .cp-slider-title{
+    font-size:1.1rem;
+    margin:0 0 .25em 0;
+    text-align:center;
+    color: var(--cp-white);
+  }
+
+  /* Topics */
+  .cp-topic-grid{
+    list-style:none;margin:0;padding:0;width:100%;max-width:960px;
+    display:flex;gap:.6em;justify-content:center;flex-wrap:wrap;
+  }
+  .cp-topic{
+    border:1px solid transparent;
+    border-radius:.8em;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(var(--cp-blur));
+    transition:border-color var(--cp-speed) ease, background var(--cp-speed) ease, transform var(--cp-speed) ease;
+  }
+  .cp-topic:hover{background:rgba(0,0,0,.55);transform:translateY(-2px)}
+  .cp-topic.active{border-color:rgba(255,255,255,.28)}
+  .cp-topic-btn{
+    display:block;text-align:center;cursor:pointer;
+    padding:.7em 1.25em;border-radius:.5em;border:none;outline:none;
+    font-size:15px;color:#fff;
+    background-image:linear-gradient(to right, #060E14, #060E14, var(--cp-accent), var(--cp-accent));
+    background-size:300% 100%;background-position:50% 0;
+    transition:background-position 400ms ease-in-out;
+    min-width:220px;
+  }
+  .cp-topic:hover .cp-topic-btn,
+  .cp-topic.active .cp-topic-btn{background-position:100% 0}
+
+  @media (max-width:900px){
+    .cp-container{aspect-ratio: 16/9}
+    .cp-topic-grid{flex-direction:column;align-items:stretch;max-width:520px}
+    .cp-topic-btn{min-width:unset;width:100%}
+  }
+  @media (max-width:480px){
+    .cp-slider-inner{padding:1em}
+  }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Cinemepic-style Video Hero Section ===== -->
+  <section id="cinemepic-hero" aria-label="Video showcase">
+    <div class="cp-container">
+
+      <!-- Video layer -->
+      <div class="cp-video-wrap" id="cpVideoWrap">
+        <!-- Active video -->
+        <video id="cpVideo" class="cp-video" autoplay muted playsinline>
+          <source id="cpVideoSrc" src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        </video>
+
+        <!-- Pause indicator -->
+        <div class="JhUzy" id="cpPauseIndicator"></div>
+        
+        <!-- Overlay with gradient only (no text) -->
+        <div class="cp-overlay"></div>
+      </div>
+
+      <!-- Top-left utilities -->
+      <div class="cp-util cp-util-left">
+        <!-- Return Icon -->
+        <button class="cp-icon-btn" id="cpReturnBtn" aria-label="Go back">
+          <svg viewBox="0 0 24 24"><path d="M19.6 10.9H7l6.2-6.2c.4-.4.4-1.1 0-1.6s-1.1-.4-1.6 0l-8.1 8.1c-.4.4-.4 1.1 0 1.6l8.1 8.1c.2.2.5.4.8.4.3 0 .5-.1.8-.4.4-.4.4-1.1 0-1.6L7 13.1h12.7c.6 0 1.1-.5 1.1-1.1-.1-.5-.5-1.1-1.2-1.1z"/></svg>
+        </button>
+
+        <!-- Mute / Unmute Toggle -->
+        <button class="cp-icon-btn" id="cpMuteBtn" aria-label="Toggle sound">
+          <!-- default initial state = muted -->
+          <svg id="cpMuteIcon" viewBox="0 0 24 24"><path d="M11.38,2.82c-.59-.29-1,0-1.47.37C8.47,4.35,7,5.49,5.59,6.66a1.6,1.6,0,0,1-1.16.4c-1,0-2,0-3.06,0S0,7.48,0,8.39c0,2,0,4,0,6.07,0,.95.42,1.35,1.39,1.36s2,0,3,0a1.75,1.75,0,0,1,1.2.42c1.51,1.23,3,2.44,4.56,3.65a1,1,0,0,0,1.18.18,1.17,1.17,0,0,0,.71-1c0-.17,0-.35,0-.52v-7c0-2.41,0-4.81,0-7.22A1.36,1.36,0,0,0,11.38,2.82Z"/></svg>
+        </button>
+      </div>
+
+      <!-- Bottom video progress -->
+      <input type="range" class="cp-progress" id="cpProgress" min="0" max="100" step="0.1" value="0" aria-label="Video progress"/>
+
+      <!-- Bottom Pull-up Slider -->
+      <div class="cp-slider" id="cpSlider">
+        <div class="cp-slider-trigger" id="cpSliderTrigger" aria-label="Open topics">
+       <i class="fa-solid fa-angle-up"></i>
+        <i class="fa-solid fa-angle-up"></i>
+
+        </div>
+
+        <div class="cp-slider-panel" id="cpSliderPanel" role="region" aria-label="Topics">
+          <div class="cp-slider-inner">
+            <h3 class="cp-slider-title" id="cpSliderTitle">Sichtbarkeit & Reichweite</h3>
+
+            <ul class="cp-topic-grid" id="cpTopics">
+              <li class="cp-topic active">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                        data-title="Sichtbarkeit & Reichweite">
+                  Sichtbarkeit &amp; <br>Reichweite
+                </button>
+              </li>
+
+              <li class="cp-topic">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+                        data-title="Anfragen generieren">
+                  Anfragen <br> generieren
+                </button>
+              </li>
+
+              <li class="cp-topic">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                        data-title="Bewerber anziehen">
+                  Bewerber <br> anziehen
+                </button>
+              </li>
+
+              <li class="cp-topic">
+                <button class="cp-topic-btn"
+                        data-video="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                        data-title="Verständnis fürs Angebot">
+                  Verständnis fürs <br> Angebot
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+  
+  <script>
+  (function(){
+    const videoWrap = document.getElementById('cpVideoWrap');
+    const video = document.getElementById('cpVideo');
+    const source = document.getElementById('cpVideoSrc');
+    const muteBtn = document.getElementById('cpMuteBtn');
+    const muteIcon = document.getElementById('cpMuteIcon');
+    const pauseIndicator = document.getElementById('cpPauseIndicator');
+    const sliderTrigger = document.getElementById('cpSliderTrigger');
+    const sliderPanel = document.getElementById('cpSliderPanel');
+    const topicsList = document.getElementById('cpTopics');
+    const progress = document.getElementById('cpProgress');
+    const sliderTitle = document.getElementById('cpSliderTitle');
+
+    /* Sync pause overlay */
+    const syncPlayIcon = () => {
+      pauseIndicator.classList.toggle('show', video.paused);
+    };
+
+    /* Video click to toggle play/pause */
+    videoWrap.addEventListener('click', () => {
+      if (video.paused) video.play(); else video.pause();
+      syncPlayIcon();
+    });
+
+    /* Also keep sync on state changes */
+    ['play','pause','ended'].forEach(evt =>
+      video.addEventListener(evt, syncPlayIcon)
+    );
+
+    /* Mute toggle button */
+    muteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      video.muted = !video.muted;
+
+      if (video.muted) {
+        // MUTE ICON
+        muteIcon.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M11.38,2.82c-.59-.29-1,0-1.47.37C8.47,4.35,7,5.49,5.59,6.66a1.6,1.6,0,0,1-1.16.4c-1,0-2,0-3.06,0S0,7.48,0,8.39c0,2,0,4,0,6.07,0,.95.42,1.35,1.39,1.36s2,0,3,0a1.75,1.75,0,0,1,1.2.42c1.51,1.23,3,2.44,4.56,3.65a1,1,0,0,0,1.18.18,1.17,1.17,0,0,0,.71-1c0-.17,0-.35,0-.52v-7c0-2.41,0-4.81,0-7.22A1.36,1.36,0,0,0,11.38,2.82Z"/>
+          </svg>
+        `;
+      } else {
+        // UNMUTE ICON
+        muteIcon.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3L7 7H3v10h4l5 4V3zm5.54 3.46L16.12 7.9A5 5 0 0 1 17 12a5 5 0 0 1-.88 2.9l1.42 1.42A7 7 0 0 0 19 12a7 7 0 0 0-1.46-4.54z"/>
+            <path d="M14.83 9.17l-1.41 1.41A1.98 1.98 0 0 1 13 12c0 .37.1.72.28 1.02l1.41 1.41A3.98 3.98 0 0 0 15 12c0-1.1-.45-2.1-1.17-2.83z"/>
+          </svg>
+        `;
+      }
+    });
+
+    /* Progress bar update loop */
+    const updateProgress = () => {
+      if (!isFinite(video.duration) || video.duration === 0) return;
+      const pct = (video.currentTime / video.duration) * 100;
+      progress.value = pct;
+      progress.style.background = `linear-gradient(to right, #2DA4DA ${pct}%, rgba(255,255,255,0.15) ${pct}%)`;
+      requestAnimationFrame(updateProgress);
+    };
+
+    video.addEventListener('loadedmetadata', updateProgress);
+    video.addEventListener('play', updateProgress);
+
+    /* Scrubbing */
+    const seekTo = () => {
+      if (!isFinite(video.duration) || video.duration === 0) return;
+      const pct = parseFloat(progress.value) || 0;
+      video.currentTime = (pct / 100) * video.duration;
+    };
+    progress.addEventListener('input', seekTo);
+    progress.addEventListener('change', seekTo);
+
+    /* Slider toggle */
+    const toggleSlider = () => {
+      sliderPanel.classList.toggle('open');
+      sliderTrigger.classList.toggle('active');
+    };
+    sliderTrigger.addEventListener('click', (e) => { e.stopPropagation(); toggleSlider(); });
+
+    document.addEventListener('click', (evt) => {
+      const within = evt.target.closest('#cpSlider');
+      if (!within) {
+        sliderPanel.classList.remove('open');
+        sliderTrigger.classList.remove('active');
+      }
+    });
+
+   let videoHistory = [];
+    let lastActiveIndex = 0; // already exists
+    const backBtn = document.getElementById('cpReturnBtn');
+    backBtn.style.display = "none"; // hide at start
+
+
+    /* Topic switching */
+ topicsList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.cp-topic-btn');
+  if (!btn) return;
+
+  const topics = [...topicsList.querySelectorAll('.cp-topic')];
+  const activeTopic = btn.closest('.cp-topic');
+  const activeIndex = topics.indexOf(activeTopic);
+
+  // STORE current state before changing anything
+  videoHistory.push({
+    src: source.src,
+    title: sliderTitle.textContent,
+    lastIndex: lastActiveIndex,
+    visibleStates: topics.map(li => li.style.display !== "none") // true/false array
+  });
+
+  // UI Active State
+  topics.forEach(li => li.classList.remove('active'));
+  activeTopic.classList.add('active');
+
+  // Progressive button removal
+  if (activeIndex !== lastActiveIndex) {
+    topics[lastActiveIndex].style.display = "none";
+  }
+  lastActiveIndex = activeIndex;
+
+  // Now show Back Button
+  if (videoHistory.length > 0) backBtn.style.display = "flex";
+
+  // Video Change
+  const nextSrc = btn.dataset.video;
+  const nextTitle = btn.dataset.title;
+
+  if (nextSrc && nextSrc !== source.src) {
+    video.classList.add('fade-out');
+    setTimeout(() => {
+      source.src = nextSrc;
+      video.load();
+      video.currentTime = 0;
+      video.play().catch(()=>{});
+      sliderTitle.textContent = nextTitle;
+      setTimeout(() => video.classList.remove('fade-out'), 120);
+    }, 200);
+  }
+
+  pauseIndicator.classList.remove('show');
+  sliderPanel.classList.remove('open');
+  sliderTrigger.classList.remove('active');
+});
+
+backBtn.addEventListener('click', () => {
+  if (videoHistory.length === 0) return;
+
+  const last = videoHistory.pop();
+
+  // Restore video
+  video.classList.add('fade-out');
+  setTimeout(() => {
+    source.src = last.src;
+    video.load();
+    video.currentTime = 0;
+    video.play().catch(()=>{});
+    sliderTitle.textContent = last.title;
+    setTimeout(() => video.classList.remove('fade-out'), 120);
+  }, 200);
+
+  // Restore buttons
+  const topics = [...topicsList.querySelectorAll('.cp-topic')];
+  topics.forEach((li, idx) => {
+    li.style.display = last.visibleStates[idx] ? "flex" : "none";
+  });
+
+  // Restore index tracking
+  lastActiveIndex = last.lastIndex;
+
+  // Hide Back Button when back at original state
+  if (videoHistory.length === 0) {
+    backBtn.style.display = "none";
+  }
+});
+
+
+  })();
+  </script>
+
+</body>
+</html>

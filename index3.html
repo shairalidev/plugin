@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinemepic Style Video Section</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .video-section {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.8) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px;
+        }
+
+        .video-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-description {
+            font-size: 1.1rem;
+            max-width: 600px;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Slider Styles - Updated to match cinemepic */
+        .slider-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 20;
+            font-family: Montserrat;
+            color: rgb(255, 255, 255);
+            font-size: 15px;
+            z-index: 10000;
+            pointer-events: none;
+            height: 100%;
+            width: 100%;
+        }
+
+        .slider-trigger {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 30;
+            transition: all 0.4s ease;
+            pointer-events: all;
+            border: 1px solid transparent;
+        }
+
+        .slider-trigger:hover {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .slider-trigger i {
+            font-size: 1rem;
+            transition: transform 0.4s ease;
+        }
+
+        .slider-trigger.active i {
+            transform: rotate(180deg);
+        }
+
+        .slider-content {
+            width: 100%;
+            background-color: rgb(0, 0, 0);
+            position: relative;
+            pointer-events: initial;
+            z-index: 1;
+            overflow: hidden;
+            max-height: 100%;
+            transform: translateY(100%);
+            transition: transform 0.5s ease;
+            max-height: 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 25;
+            pointer-events: all;
+        }
+
+        .slider-content.active {
+            transform: translateY(0);
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        .slider-content::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+            background: transparent;
+        }
+
+        .slider-content::-webkit-scrollbar-track,
+        .slider-content::-webkit-scrollbar-corner {
+            background-color: rgb(0, 0, 0);
+        }
+
+        .slider-content::-webkit-scrollbar-thumb {
+            background-color: rgb(102, 102, 102);
+        }
+
+        .slider-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .slider-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+            width: 100%;
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            list-style: none;
+            padding: 0px;
+            cursor: default;
+            max-width: 500px;
+            margin: 0px;
+            width: 100%;
+            gap: 0.5em;
+        }
+
+        .topic-card {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            width: 100%;
+            padding: 0.5rem;
+            text-align: center;
+            box-sizing: border-box;
+            transition: 0.1s ease-out;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: all;
+        }
+
+        .topic-card:hover {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .topic-card.active {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .topic-button {
+            background-image: linear-gradient(to right, rgb(25, 41, 59), rgb(25, 41, 59), rgb(45, 164, 218), rgb(45, 164, 218));
+            background-size: 300% 100%;
+            background-position: 50% 0px;
+            color: rgb(255, 255, 255);
+            transition: background-position 0.4s ease-in-out, opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            padding: 0.5em 1.5em;
+            flex: 1 1 0%;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: Montserrat;
+            font-size: 15px;
+        }
+
+        .topic-button:hover {
+            background-position: 100% 0px;
+        }
+
+        .topic-card.active .topic-button {
+            background-position: 100% 0px;
+        }
+
+        .content-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .content-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .content-card p {
+            line-height: 1.6;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1024px) {
+            .content-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .video-section {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .video-title {
+                font-size: 2rem;
+            }
+            
+            .video-section {
+                height: 400px;
+            }
+            
+            .video-overlay {
+                padding: 20px;
+            }
+            
+            .slider-content {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section-header">
+            <h1 class="section-title">Business Growth Solutions</h1>
+            <p class="section-subtitle">Discover how our tailored strategies can transform your business and drive measurable results</p>
+        </div>
+        
+        <div class="video-section">
+            <div class="video-container">
+                <video autoplay muted loop playsinline id="mainVideo">
+                    <source src="https://player.vimeo.com/progressive_redirect/playback/925325780/rendition/720p/file.mp4?loc=external&amp;oauth2_token_id=1745605072&amp;signature=ac4c97d4dbe8d8ea6f18529c8f7f2ff0d3e34bcefc4006365c7c948bdeb1b0ee" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-overlay">
+                    <h2 class="video-title" id="videoTitle">Sichtbarkeit & Reichweite</h2>
+                    <p class="video-description" id="videoDescription">Increase your company's visibility and reach through targeted marketing strategies and digital presence enhancement.</p>
+                </div>
+            </div>
+            
+            <div class="video-controls">
+                <button class="control-btn" id="playPauseBtn">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <button class="control-btn" id="muteBtn">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+            
+            <!-- Slider Container -->
+            <div class="slider-container">
+                <div class="slider-trigger" id="sliderTrigger">
+                    <i class="fas fa-chevron-up"></i>
+                </div>
+                
+                <div class="slider-content" id="sliderContent">
+                    <div class="slider-inner">
+                        <h3 class="slider-title">Welches Thema beschäftigt dich zurzeit in deinem Unternehmen?</h3>
+                        
+                        <ul class="topics-grid">
+                            <li class="topic-card active">
+                                <button class="topic-button" data-video="https://player.vimeo.com/progressive_redirect/playback/925325780/rendition/720p/file.mp4?loc=external&amp;oauth2_token_id=1745605072&amp;signature=ac4c97d4dbe8d8ea6f18529c8f7f2ff0d3e34bcefc4006365c7c948bdeb1b0ee" data-title="Sichtbarkeit & Reichweite" data-description="Increase your company's visibility and reach through targeted marketing strategies and digital presence enhancement.">
+                                    Sichtbarkeit & Reichweite
+                                </button>
+                            </li>
+                            
+                            <li class="topic-card">
+                                <button class="topic-button" data-video="https://player.vimeo.com/progressive_redirect/playback/926598123/rendition/720p/file.mp4?loc=external&amp;signature=example1" data-title="Anfragen generieren" data-description="Generate quality leads and inquiries through effective marketing funnels and conversion optimization techniques.">
+                                    Anfragen generieren
+                                </button>
+                            </li>
+                            
+                            <li class="topic-card">
+                                <button class="topic-button" data-video="https://player.vimeo.com/progressive_redirect/playback/927451234/rendition/720p/file.mp4?loc=external&amp;signature=example2" data-title="Bewerber anziehen" data-description="Attract top talent to your organization with effective employer branding and recruitment marketing strategies.">
+                                    Bewerber anziehen
+                                </button>
+                            </li>
+                            
+                            <li class="topic-card">
+                                <button class="topic-button" data-video="https://player.vimeo.com/progressive_redirect/playback/928312345/rendition/720p/file.mp4?loc=external&amp;signature=example3" data-title="Verständnis fürs Angebot" data-description="Improve customer understanding of your products and services through clear messaging and educational content.">
+                                    Verständnis fürs Angebot
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <div class="content-card">
+                <h3>Our Approach</h3>
+                <p>We combine data-driven insights with creative strategies to deliver measurable results for your business. Our team of experts works closely with you to understand your unique challenges and opportunities.</p>
+                <div class="features">
+                    <span class="feature">Data Analysis</span>
+                    <span class="feature">Strategy Development</span>
+                    <span class="feature">Implementation</span>
+                    <span class="feature">Performance Tracking</span>
+                </div>
+            </div>
+            
+            <div class="content-card">
+                <h3>Expected Outcomes</h3>
+                <p>Businesses that partner with us typically see significant improvements in key metrics within the first 6 months of implementation.</p>
+                <div class="features">
+                    <span class="feature">65% Visibility Increase</span>
+                    <span class="feature">40% More Leads</span>
+                    <span class="feature">50% Faster Hiring</span>
+                    <span class="feature">35% Higher Conversion</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Interactive Business Solutions &copy; 2023 | Transform your business with our strategies</p>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const mainVideo = document.getElementById('mainVideo');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const sliderTrigger = document.getElementById('sliderTrigger');
+        const sliderContent = document.getElementById('sliderContent');
+        const topicCards = document.querySelectorAll('.topic-card');
+        const topicButtons = document.querySelectorAll('.topic-button');
+        const videoTitle = document.getElementById('videoTitle');
+        const videoDescription = document.getElementById('videoDescription');
+
+        // Toggle play/pause
+        playPauseBtn.addEventListener('click', function() {
+            if (mainVideo.paused) {
+                mainVideo.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                mainVideo.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+
+        // Toggle mute/unmute
+        muteBtn.addEventListener('click', function() {
+            if (mainVideo.muted) {
+                mainVideo.muted = false;
+                muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            } else {
+                mainVideo.muted = true;
+                muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            }
+        });
+
+        // Toggle slider content
+        sliderTrigger.addEventListener('click', function() {
+            sliderTrigger.classList.toggle('active');
+            sliderContent.classList.toggle('active');
+        });
+
+        // Change video and content based on topic selection
+        topicButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all cards
+                topicCards.forEach(card => card.classList.remove('active'));
+                
+                // Add active class to clicked card
+                this.parentElement.classList.add('active');
+                
+                // Get data attributes
+                const videoSrc = this.getAttribute('data-video');
+                const title = this.getAttribute('data-title');
+                const description = this.getAttribute('data-description');
+                
+                // Update video source
+                mainVideo.querySelector('source').src = videoSrc;
+                mainVideo.load();
+                mainVideo.play();
+                
+                // Update video title and description
+                videoTitle.textContent = title;
+                videoDescription.textContent = description;
+                
+                // Update play button
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                
+                // Close the slider after selection
+                sliderTrigger.classList.remove('active');
+                sliderContent.classList.remove('active');
+            });
+        });
+
+        // Close slider when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!sliderTrigger.contains(event.target) && !sliderContent.contains(event.target)) {
+                sliderTrigger.classList.remove('active');
+                sliderContent.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
